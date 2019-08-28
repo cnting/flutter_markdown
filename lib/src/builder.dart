@@ -30,6 +30,7 @@ final Set<String> _kBlockTags = new Set<String>.from(<String>[
 const List<String> _kListTags = const <String>['ul', 'ol'];
 
 bool _isBlockTag(String tag) => _kBlockTags.contains(tag);
+
 bool _isListTag(String tag) => _kListTags.contains(tag);
 
 class _BlockElement {
@@ -43,18 +44,18 @@ class _BlockElement {
 
 /// A collection of widgets that should be placed adjacent to (inline with)
 /// other inline elements in the same parent block.
-/// 
-/// Inline elements can be textual (a/em/strong) represented by [RichText] 
+///
+/// Inline elements can be textual (a/em/strong) represented by [RichText]
 /// widgets or images (img) represented by [Image.network] widgets.
-/// 
+///
 /// Inline elements can be nested within other inline elements, inheriting their
 /// parent's style along with the style of the block they are in.
-/// 
-/// When laying out inline widgets, first, any adjacent RichText widgets are 
+///
+/// When laying out inline widgets, first, any adjacent RichText widgets are
 /// merged, then, all inline widgets are enclosed in a parent [Wrap] widget.
 class _InlineElement {
   _InlineElement(this.tag, {this.style});
- 
+
   final String tag;
 
   /// Created by merging the style defined for this element's [tag] in the
@@ -84,7 +85,7 @@ abstract class MarkdownBuilderDelegate {
 ///  * [Markdown], which is a widget that parses and displays Markdown.
 class MarkdownBuilder implements md.NodeVisitor {
   /// Creates an object that builds a [Widget] tree from parsed Markdown.
-  MarkdownBuilder({ this.delegate, this.styleSheet, this.imageDirectory });
+  MarkdownBuilder({this.delegate, this.styleSheet, this.imageDirectory});
 
   /// A delegate that controls how link and `pre` elements behave.
   final MarkdownBuilderDelegate delegate;
@@ -99,7 +100,6 @@ class MarkdownBuilder implements md.NodeVisitor {
   final List<_BlockElement> _blocks = <_BlockElement>[];
   final List<_InlineElement> _inlines = <_InlineElement>[];
   final List<GestureRecognizer> _linkHandlers = <GestureRecognizer>[];
-
 
   /// Returns widgets that display the given Markdown nodes.
   ///
@@ -129,26 +129,40 @@ class MarkdownBuilder implements md.NodeVisitor {
     _addParentInlineIfNeeded(_blocks.last.tag);
 
     final TextSpan span = _blocks.last.tag == 'pre'
-      ? delegate.formatText(styleSheet, text.text)
-      : new TextSpan(
-          style: _inlines.last.style,
-          text: text.text,
-          recognizer: _linkHandlers.isNotEmpty ? _linkHandlers.last : null,
-        );
+        ? delegate.formatText(styleSheet, text.text)
+        : new TextSpan(
+            style: _inlines.last.style,
+            text: text.text,
+            recognizer: _linkHandlers.isNotEmpty ? _linkHandlers.last : null,
+          );
 
-    _inlines.last.children.add(new RichText(
-      textScaleFactor: styleSheet.textScaleFactor,
-      text: span,
-    ));
+    Widget child;
+    if (_blocks.last.tag == 'h3' && styleSheet.h3Wrap != null) {
+      child = styleSheet.h3Wrap(RichText(
+        textScaleFactor: styleSheet.textScaleFactor,
+        text: span,
+      ));
+    } else if (_blocks.last.tag == 'h4' && styleSheet.h4Wrap != null) {
+      child = styleSheet.h4Wrap(RichText(
+        textScaleFactor: styleSheet.textScaleFactor,
+        text: span,
+      ));
+    } else {
+      child = new RichText(
+        textScaleFactor: styleSheet.textScaleFactor,
+        text: span,
+      );
+    }
+    _inlines.last.children.add(child);
   }
 
   @override
   bool visitElementBefore(md.Element element) {
     final String tag = element.tag;
+
     if (_isBlockTag(tag)) {
       _addAnonymousBlockIfNeeded(styleSheet.styles[tag]);
-      if (_isListTag(tag))
-        _listIndents.add(tag);
+      if (_isListTag(tag)) _listIndents.add(tag);
       _blocks.add(new _BlockElement(tag));
     } else {
       _addParentInlineIfNeeded(_blocks.last.tag);
@@ -245,8 +259,7 @@ class MarkdownBuilder implements md.NodeVisitor {
 
   Widget _buildImage(String src) {
     final List<String> parts = src.split('#');
-    if (parts.isEmpty)
-      return const SizedBox();
+    if (parts.isEmpty) return const SizedBox();
 
     final String path = parts.first;
     double width;
