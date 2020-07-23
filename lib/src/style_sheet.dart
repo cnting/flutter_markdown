@@ -31,6 +31,7 @@ class MarkdownStyleSheet {
     this.textScaleFactor = 1.0,
     this.h3Wrap,
     this.h4Wrap,
+    this.imgWrap,
   }) : _styles = <String, TextStyle>{
           'a': a,
           'p': p,
@@ -55,10 +56,7 @@ class MarkdownStyleSheet {
     return new MarkdownStyleSheet(
       a: const TextStyle(color: Colors.blue),
       p: theme.textTheme.body1,
-      code: new TextStyle(
-          color: Colors.grey.shade700,
-          fontFamily: "monospace",
-          fontSize: theme.textTheme.body1.fontSize * 0.85),
+      code: new TextStyle(color: Colors.grey.shade700, fontFamily: "monospace", fontSize: theme.textTheme.body1.fontSize * 0.85),
       h1: theme.textTheme.headline,
       h2: theme.textTheme.title,
       h3: theme.textTheme.subhead,
@@ -72,11 +70,9 @@ class MarkdownStyleSheet {
       blockSpacing: 8.0,
       listIndent: 32.0,
       blockquotePadding: 8.0,
-      blockquoteDecoration: new BoxDecoration(
-          color: Colors.blue.shade100, borderRadius: new BorderRadius.circular(2.0)),
+      blockquoteDecoration: new BoxDecoration(color: Colors.blue.shade100, borderRadius: new BorderRadius.circular(2.0)),
       codeblockPadding: 8.0,
-      codeblockDecoration: new BoxDecoration(
-          color: Colors.grey.shade100, borderRadius: new BorderRadius.circular(2.0)),
+      codeblockDecoration: new BoxDecoration(color: Colors.grey.shade100, borderRadius: new BorderRadius.circular(2.0)),
       horizontalRuleDecoration: new BoxDecoration(
         border: new Border(top: new BorderSide(width: 5.0, color: Colors.grey.shade300)),
       ),
@@ -91,10 +87,7 @@ class MarkdownStyleSheet {
     return new MarkdownStyleSheet(
       a: const TextStyle(color: Colors.blue),
       p: theme.textTheme.body1,
-      code: new TextStyle(
-          color: Colors.grey.shade700,
-          fontFamily: "monospace",
-          fontSize: theme.textTheme.body1.fontSize * 0.85),
+      code: new TextStyle(color: Colors.grey.shade700, fontFamily: "monospace", fontSize: theme.textTheme.body1.fontSize * 0.85),
       h1: theme.textTheme.display3,
       h2: theme.textTheme.display2,
       h3: theme.textTheme.display1,
@@ -108,11 +101,9 @@ class MarkdownStyleSheet {
       blockSpacing: 8.0,
       listIndent: 32.0,
       blockquotePadding: 8.0,
-      blockquoteDecoration: new BoxDecoration(
-          color: Colors.blue.shade100, borderRadius: new BorderRadius.circular(2.0)),
+      blockquoteDecoration: new BoxDecoration(color: Colors.blue.shade100, borderRadius: new BorderRadius.circular(2.0)),
       codeblockPadding: 8.0,
-      codeblockDecoration: new BoxDecoration(
-          color: Colors.grey.shade100, borderRadius: new BorderRadius.circular(2.0)),
+      codeblockDecoration: new BoxDecoration(color: Colors.grey.shade100, borderRadius: new BorderRadius.circular(2.0)),
       horizontalRuleDecoration: new BoxDecoration(
         border: new Border(top: new BorderSide(width: 5.0, color: Colors.grey.shade300)),
       ),
@@ -144,7 +135,8 @@ class MarkdownStyleSheet {
       Decoration horizontalRuleDecoration,
       double textScaleFactor,
       Widget Function(Widget child) h3Wrap,
-      Widget Function(Widget child) h4Wrap}) {
+      Widget Function(Widget child) h4Wrap,
+      Widget Function(Widget child) imgWrap}) {
     return new MarkdownStyleSheet(
         a: a ?? this.a,
         p: p ?? this.p,
@@ -168,7 +160,8 @@ class MarkdownStyleSheet {
         horizontalRuleDecoration: horizontalRuleDecoration ?? this.horizontalRuleDecoration,
         textScaleFactor: textScaleFactor ?? this.textScaleFactor,
         h3Wrap: h3Wrap,
-        h4Wrap: h4Wrap);
+        h4Wrap: h4Wrap,
+        imgWrap: imgWrap);
   }
 
   /// The [TextStyle] to use for `a` elements.
@@ -237,6 +230,8 @@ class MarkdownStyleSheet {
   final Widget Function(Widget child) h3Wrap;
 
   final Widget Function(Widget child) h4Wrap;
+
+  final Widget Function(Widget child) imgWrap;
 
   /// A [Map] from element name to the corresponding [TextStyle] object.
   Map<String, TextStyle> get styles => _styles;

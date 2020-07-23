@@ -10,6 +10,7 @@ import 'package:markdown/markdown.dart' as md;
 import 'package:path/path.dart' as p;
 
 import 'style_sheet.dart';
+import 'style_sheet.dart';
 
 final Set<String> _kBlockTags = new Set<String>.from(<String>[
   'p',
@@ -246,7 +247,7 @@ class MarkdownBuilder implements md.NodeVisitor {
 
       if (tag == 'img') {
         // create an image widget for this image
-        current.children.add(_buildImage(element.attributes['src']));
+        current.children.add(_buildImage(styleSheet, element.attributes['src']));
       } else if (tag == 'a') {
         _linkHandlers.removeLast();
       }
@@ -257,7 +258,7 @@ class MarkdownBuilder implements md.NodeVisitor {
     }
   }
 
-  Widget _buildImage(String src) {
+  Widget _buildImage(MarkdownStyleSheet styleSheet, String src) {
     final List<String> parts = src.split('#');
     if (parts.isEmpty) return const SizedBox();
 
@@ -281,12 +282,13 @@ class MarkdownBuilder implements md.NodeVisitor {
     } else if (uri.scheme == "resource") {
       child = new Image.asset(path.substring(9), width: width, height: height);
     } else {
-      String filePath = (imageDirectory == null
-          ? uri.toFilePath()
-          : p.join(imageDirectory.path, uri.toFilePath()));
+      String filePath = (imageDirectory == null ? uri.toFilePath() : p.join(imageDirectory.path, uri.toFilePath()));
       child = new Image.file(new File(filePath), width: width, height: height);
     }
 
+    if (styleSheet.imgWrap != null) {
+      child = styleSheet.imgWrap(child);
+    }
     if (_linkHandlers.isNotEmpty) {
       TapGestureRecognizer recognizer = _linkHandlers.last;
       return new GestureDetector(child: child, onTap: recognizer.onTap);
@@ -306,8 +308,7 @@ class MarkdownBuilder implements md.NodeVisitor {
   }
 
   Widget _buildBullet(String listTag) {
-    if (listTag == 'ul')
-      return new Text('•', textAlign: TextAlign.center, style: styleSheet.styles['li']);
+    if (listTag == 'ul') return new Text('•', textAlign: TextAlign.center, style: styleSheet.styles['li']);
 
     final int index = _blocks.last.nextListIndex;
     return new Padding(
@@ -327,8 +328,7 @@ class MarkdownBuilder implements md.NodeVisitor {
 
   void _addBlockChild(Widget child) {
     final _BlockElement parent = _blocks.last;
-    if (parent.children.isNotEmpty)
-      parent.children.add(new SizedBox(height: styleSheet.blockSpacing));
+    if (parent.children.isNotEmpty) parent.children.add(new SizedBox(height: styleSheet.blockSpacing));
     parent.children.add(child);
     parent.nextListIndex += 1;
   }
@@ -354,9 +354,7 @@ class MarkdownBuilder implements md.NodeVisitor {
       if (mergedTexts.isNotEmpty && mergedTexts.last is RichText && child is RichText) {
         RichText previous = mergedTexts.removeLast();
         TextSpan previousTextSpan = previous.text;
-        List<TextSpan> children = previousTextSpan.children != null
-            ? new List.from(previousTextSpan.children)
-            : [previousTextSpan];
+        List<TextSpan> children = previousTextSpan.children != null ? new List.from(previousTextSpan.children) : [previousTextSpan];
         children.add(child.text);
         TextSpan mergedSpan = new TextSpan(children: children);
         mergedTexts.add(new RichText(
